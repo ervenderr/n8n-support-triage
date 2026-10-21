@@ -1,0 +1,102 @@
+{
+  "id": "triageErr01",
+  "name": "Support Triage: Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE support_messages SET status='failed', error=$2, updated_at=now() WHERE execution_id=$1 RETURNING id, sender;",
+        "options": {
+          "queryReplacement": "={{ [ String($json.execution.id), ($json.execution.lastNodeExecuted + ': ' + ($json.execution.error?.message || 'unknown')).slice(0, 500) ] }}"
+        }
+      },
+      "name": "Mark Row Failed",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        260,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgTriage01",
+          "name": "Triage Postgres"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:9999/notify",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { text: ':x: Support triage FAILED (execution ' + $('Error Trigger').first().json.execution.id + ')\\nNode: ' + $('Error Trigger').first().json.execution.lastNodeExecuted + '\\nError: ' + ($('Error Trigger').first().json.execution.error?.message || 'unknown') + '\\nRow: ' + ($json.id ? '#' + $json.id + ' marked failed (re-send to retry)' : 'none (failed before the message was saved)') } }}",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "name": "Alert Team (set same URL as main Config)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        520,
+        0
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "content": "## Global error workflow\nAny unhandled error in the main workflow: mark the row status=failed (found via execution_id) and alert the team. Re-sending the same message re-claims a failed row.",
+        "width": 700,
+        "height": 120,
+        "color": 3
+      },
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -180
+      ]
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Mark Row Failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Row Failed": {
+      "main": [
+        [
+          {
+            "node": "Alert Team (set same URL as main Config)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false
+}

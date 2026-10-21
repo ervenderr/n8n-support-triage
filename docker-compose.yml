@@ -1,0 +1,38 @@
+# Throwaway local stack: n8n on :5690 + its own Postgres (app data). Project name: n8n-triage.
+name: n8n-triage
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: triage
+      POSTGRES_PASSWORD: triage_local_only
+      POSTGRES_DB: triage
+    volumes:
+      - triage_pg:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U triage"]
+      interval: 3s
+      retries: 20
+  n8n:
+    image: n8nio/n8n:2.18.5
+    depends_on:
+      postgres: { condition: service_healthy }
+    ports:
+      - "5690:5678"
+    environment:
+      N8N_SECURE_COOKIE: "false"
+      GENERIC_TIMEZONE: Asia/Manila
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - triage_n8n:/home/node/.n8n
+  adminer:  # demo-only web DB viewer
+    image: adminer:4
+    depends_on:
+      postgres: { condition: service_healthy }
+    ports:
+      - "127.0.0.1:8080:8080"
+volumes:
+  triage_pg:
+  triage_n8n:

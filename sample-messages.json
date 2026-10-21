@@ -1,0 +1,110 @@
+[
+  {
+    "name": "clear-billing",
+    "payload": {
+      "message_id": "t-001",
+      "sender": "ana@example.com",
+      "text": "Hi, I was charged twice for my March invoice (#INV-2291). Can you tell me why there are two charges on my card?"
+    },
+    "expect": {
+      "http": 200,
+      "duplicate": false,
+      "category": "Billing",
+      "notified": false
+    }
+  },
+  {
+    "name": "refund-request",
+    "payload": {
+      "message_id": "t-002",
+      "sender": "ben@example.com",
+      "text": "I want my money back for the annual plan I bought last week. It does not do what I need. Please refund me."
+    },
+    "expect": {
+      "http": 200,
+      "duplicate": false,
+      "category": "Refund Request",
+      "notified": true
+    }
+  },
+  {
+    "name": "ambiguous-low-confidence",
+    "payload": {
+      "message_id": "t-003",
+      "sender": "cy@example.com",
+      "text": "Hi, about the thing from last time, it's still not right. Can someone look at it?"
+    },
+    "expect": {
+      "http": 200,
+      "duplicate": false,
+      "notified": true,
+      "note": "LLM-dependent: expect confidence < 0.8 or a human-review flag"
+    }
+  },
+  {
+    "name": "duplicate-resend-of-clear-billing",
+    "payload": {
+      "message_id": "t-001",
+      "sender": "ana@example.com",
+      "text": "Hi, I was charged twice for my March invoice (#INV-2291). Can you tell me why there are two charges on my card?"
+    },
+    "expect": {
+      "http": 200,
+      "duplicate": true
+    }
+  },
+  {
+    "name": "empty-message",
+    "payload": {
+      "message_id": "t-005",
+      "sender": "dee@example.com",
+      "text": "   "
+    },
+    "expect": {
+      "http": 400
+    }
+  },
+  {
+    "name": "garbage-message",
+    "payload": {
+      "message_id": "t-006",
+      "sender": "eli@example.com",
+      "text": "!!! ??? ..."
+    },
+    "expect": {
+      "http": 400
+    }
+  },
+  {
+    "name": "llm-malformed-json-always",
+    "needs_fake_llm": true,
+    "payload": {
+      "message_id": "t-007",
+      "sender": "fay@example.com",
+      "text": "Please update the credit card on my account."
+    },
+    "expect": {
+      "http": 200,
+      "duplicate": false,
+      "category": "General Question",
+      "notified": true,
+      "note": "fake LLM returns garbage twice -> fallback confidence 0 + human review"
+    }
+  },
+  {
+    "name": "llm-malformed-json-then-valid",
+    "needs_fake_llm": true,
+    "payload": {
+      "message_id": "t-008",
+      "sender": "gus@example.com",
+      "text": "Update my card please [bad-then-good]"
+    },
+    "expect": {
+      "http": 200,
+      "duplicate": false,
+      "category": "Billing",
+      "notified": false,
+      "note": "garbage once, valid on the retry -> ai_attempts 2"
+    }
+  }
+]

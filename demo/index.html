@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Support Triage Demo</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1a1d23;--mute:#6b7280;--line:#e3e6ea;--accent:#2f5bea;--ok:#15803d;--warn:#b45309;--bad:#b91c1c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,sans-serif}
+main{max-width:640px;margin:48px auto;padding:0 16px}
+h1{font-size:22px;margin:0 0 4px}
+.sub{color:var(--mute);margin:0 0 24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+input,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;margin-bottom:16px;background:#fff;color:var(--ink)}
+input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+button{padding:10px 16px;border-radius:8px;border:1px solid var(--line);background:#fff;font:inherit;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:disabled{opacity:.5;cursor:wait}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chip{padding:3px 10px;border-radius:999px;font-size:13px;font-weight:600;background:#eef1f6}
+.chip.ok{background:#e6f4ea;color:var(--ok)}.chip.warn{background:#fdf1dc;color:var(--warn)}.chip.bad{background:#fde8e8;color:var(--bad)}
+.draft{white-space:pre-wrap;background:var(--bg);border-radius:8px;padding:12px;margin:0}
+.k{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin:12px 0 6px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}th{color:var(--mute);font-weight:600}td:nth-child(2){max-width:170px;overflow:hidden;text-overflow:ellipsis}td:nth-child(3){max-width:110px;overflow:hidden;text-overflow:ellipsis}
+@media(prefers-color-scheme:dark){:root{--bg:#111318;--card:#1a1d24;--ink:#e8eaee;--mute:#9aa1ad;--line:#2b303a}
+input,textarea,button{background:#1a1d24}.chip{background:#252a33}}
+</style>
+<main>
+  <h1>Support Triage</h1>
+  <p class="sub">Send a customer message to the n8n workflow.</p>
+  <form class="card" id="f">
+    <label for="sender">Sender</label>
+    <input id="sender" value="demo@example.com" required>
+    <label for="text">Message</label>
+    <textarea id="text" rows="5" placeholder="Hi, I was charged twice for my March invoice..." required></textarea>
+    <div class="row">
+      <button class="primary" id="send">Send</button>
+      <button type="button" id="again">Re-send same message</button>
+    </div>
+  </form>
+  <div id="out" aria-live="polite"></div>
+  <div class="card">
+    <div class="k" style="margin-top:0">Database (latest rows)</div>
+    <div style="overflow-x:auto"><table id="rows"></table></div>
+  </div>
+</main>
+<script>
+const URL_ = "http://localhost:5690/webhook/support-message";
+const ROWS_URL = "http://localhost:5690/webhook/support-messages"; // demo-only list workflow
+let lastId = null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;"}[c]));
+const card = html => ($("out").innerHTML = `<div class="card">${html}</div>`);
+
+async function loadRows() {
+  try {
+    const rows = await (await fetch(ROWS_URL)).json();
+    $("rows").innerHTML = "<tr><th>ID</th><th>Message</th><th>Category</th><th>Conf.</th><th>Status</th><th>Alert</th></tr>" +
+      rows.map(r => `<tr><td>${r.id}</td><td>${esc(r.message)}</td><td>${esc(r.category || "-")}</td><td>${r.confidence ?? "-"}</td><td>${esc(r.status)}</td><td>${r.notified ? "yes" : "no"}</td></tr>`).join("");
+  } catch (e) { $("rows").innerHTML = `<tr><td>Could not load rows: ${esc(e.message)}</td></tr>`; }
+}
+async function submit(id) {
+  lastId = id;
+  $("send").disabled = $("again").disabled = true;
+  card("Working...");
+  try {
+    const r = await fetch(URL_, {method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({message_id: id, sender: $("sender").value, text: $("text").value})});
+    const d = await r.json();
+    if (!r.ok) card(`<span class="chip bad">HTTP ${r.status}</span> ${esc(d.error || d.message || "Error")}`);
+    else if (d.duplicate) card(`<span class="chip warn">Duplicate</span> Already received, not processed again.`);
+    else card(`<div class="chips">
+        <span class="chip">${esc(d.category)}</span>
+        <span class="chip ${d.confidence >= 0.8 ? "ok" : "warn"}">Confidence ${d.confidence}</span>
+        <span class="chip">${esc(d.status)}</span>
+        <span class="chip ${d.notified ? "bad" : "ok"}">${d.notified ? "Team alerted" : "No alert"}</span>
+        ${d.needs_human_review ? '<span class="chip warn">Human review</span>' : ""}</div>
+      <div class="k">Draft reply</div><p class="draft">${esc(d.draft_response || "")}</p>`);
+  } catch (e) { card(`<span class="chip bad">Request failed</span> ${esc(e.message)}`); }
+  $("send").disabled = $("again").disabled = false;
+  loadRows();
+}
+loadRows();
+$("f").onsubmit = e => { e.preventDefault(); submit("demo-" + crypto.randomUUID()); };
+$("again").onclick = () => lastId ? submit(lastId) : card("Send a message first.");
+</script>
+</html>

@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Support Triage Showcase</title>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg: #0a0f1e;
+        --bg2: #121a33;
+        --blue: #5b84ff;
+        --blue-soft: #a9c0ff;
+        --amber: #fbbf24;
+        --green: #4ade80;
+        --red: #f87171;
+        --ink: #f8fafc;
+        --dim: #7b8aa0;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--bg); }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+        color: var(--ink);
+        background: linear-gradient(180deg, var(--bg2) 0%, var(--bg) 70%);
+      }
+      .glow { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.5; }
+      #glow-a { width: 760px; height: 760px; left: -240px; top: 120px; background: #2b4bd1; }
+      #glow-b { width: 640px; height: 640px; right: -260px; top: 980px; background: #6d28d9; }
+      .scene { position: absolute; inset: 0; }
+      .stage { position: absolute; inset: 0; }
+
+      .kicker {
+        position: absolute; left: 80px; top: 150px;
+        font-size: 34px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
+        color: var(--blue-soft);
+      }
+      .headline {
+        position: absolute; left: 80px; right: 80px; top: 214px;
+        font-size: 104px; line-height: 1.02; font-weight: 800; letter-spacing: -0.035em;
+      }
+      .headline .ln { display: block; }
+      .headline em { font-style: normal; color: var(--blue-soft); }
+
+      /* browser-style window frame around real screenshots */
+      .win {
+        position: absolute; left: 190px; top: 540px; width: 700px;
+        border-radius: 36px; background: #0b1020; padding: 12px;
+        box-shadow: 0 0 0 3px #26325a, 0 60px 140px rgba(0, 0, 0, 0.65), 0 0 120px rgba(91, 132, 255, 0.22);
+      }
+      .win .screen { width: 100%; border-radius: 26px; overflow: hidden; background: #fff; }
+      .win img { display: block; width: 100%; height: auto; }
+      .win.wide { left: 80px; width: 920px; top: 700px; }
+      .win.wide .screen { height: 440px; position: relative; }
+      .win.wide img { position: absolute; left: 0; top: 0; width: 2720px; height: 400px; margin-top: 20px; }
+
+      .chip {
+        position: absolute; padding: 26px 40px; border-radius: 999px;
+        font-size: 44px; font-weight: 750; letter-spacing: -0.01em;
+        background: rgba(10, 16, 32, 0.94); border: 3px solid rgba(255, 255, 255, 0.14);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+        white-space: nowrap;
+      }
+      .chip.amber { color: var(--amber); border-color: rgba(251, 191, 36, 0.55); }
+      .chip.green { color: var(--green); border-color: rgba(74, 222, 128, 0.55); }
+      .chip.red { color: var(--red); border-color: rgba(248, 113, 113, 0.55); }
+      .chip.blue { color: var(--blue-soft); border-color: rgba(169, 192, 255, 0.55); }
+
+      /* hook */
+      .hook-line {
+        position: absolute; left: 80px; right: 80px; font-size: 92px; font-weight: 800; white-space: nowrap;
+        letter-spacing: -0.04em; line-height: 1;
+      }
+      #h1 { top: 560px; color: #607086; }
+      #h2 { top: 690px; color: #94a3b8; }
+      #h3 { top: 820px; color: var(--amber); }
+      #h4 { top: 1000px; font-size: 124px; color: var(--ink); line-height: 1.04; }
+      #h4 .ln { display: block; }
+      #h4 em { font-style: normal; color: var(--blue-soft); }
+
+      /* safety-net pills */
+      .pill-row { position: absolute; left: 80px; right: 80px; top: 700px; display: flex; flex-wrap: wrap; gap: 24px; }
+      .pill {
+        padding: 28px 44px; border-radius: 999px; font-size: 52px; font-weight: 700;
+        background: rgba(255, 255, 255, 0.07); border: 3px solid rgba(255, 255, 255, 0.16);
+      }
+
+      /* end card */
+      #end-mark {
+        position: absolute; left: 340px; top: 480px; width: 400px; height: 400px; border-radius: 92px;
+        background: linear-gradient(135deg, #2b4bd1, #6d28d9); display: flex; align-items: center; justify-content: center;
+        font-size: 190px; font-weight: 800; letter-spacing: -0.04em;
+        box-shadow: 0 50px 120px rgba(91, 132, 255, 0.4);
+      }
+      #end-name { position: absolute; left: 0; right: 0; top: 960px; text-align: center; font-size: 140px; font-weight: 800; letter-spacing: -0.04em; }
+      #end-sub { position: absolute; left: 0; right: 0; top: 1130px; text-align: center; font-size: 56px; font-weight: 600; color: var(--blue-soft); }
+      #end-note { position: absolute; left: 0; right: 0; top: 1270px; text-align: center; font-size: 46px; font-weight: 600; color: var(--dim); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="31">
+      <div class="glow" id="glow-a"></div>
+      <div class="glow" id="glow-b"></div>
+
+      <!-- 1 hook -->
+      <section id="s1" class="clip scene" data-start="0" data-duration="3.9" data-track-index="1">
+        <div class="stage" id="s1-stage">
+          <div class="hook-line" id="h1">Messages pile up.</div>
+          <div class="hook-line" id="h2">Which are urgent?</div>
+          <div class="hook-line" id="h3">Which want refunds?</div>
+          <div class="hook-line" id="h4"><span class="ln">Triage</span><span class="ln"><em>automatically.</em></span></div>
+        </div>
+      </section>
+
+      <!-- 2 billing -->
+      <section id="s2" class="clip scene" data-start="3.5" data-duration="4.5" data-track-index="2">
+        <div class="stage" id="s2-stage">
+          <div class="kicker">Classify</div>
+          <div class="headline"><span class="ln">Every message,</span><span class="ln"><em>sorted by AI</em></span></div>
+          <div class="win" id="s2-win"><div class="screen"><img src="assets/01-billing.jpg" alt="" /></div></div>
+          <div class="chip green" id="s2-chip" style="left: 80px; top: 1690px">Billing · confidence 0.95</div>
+        </div>
+      </section>
+
+      <!-- 3 refund -->
+      <section id="s3" class="clip scene" data-start="7.6" data-duration="4.5" data-track-index="3">
+        <div class="stage" id="s3-stage">
+          <div class="kicker">Alert</div>
+          <div class="headline"><span class="ln">Refunds go</span><span class="ln"><em>straight to a human</em></span></div>
+          <div class="win" id="s3-win"><div class="screen"><img src="assets/02-refund.jpg" alt="" /></div></div>
+          <div class="chip red" id="s3-chip" style="left: 80px; top: 1690px">Team alerted</div>
+        </div>
+      </section>
+
+      <!-- 4 ambiguous -->
+      <section id="s4" class="clip scene" data-start="11.7" data-duration="4.5" data-track-index="4">
+        <div class="stage" id="s4-stage">
+          <div class="kicker">Unsure?</div>
+          <div class="headline"><span class="ln">It asks a human,</span><span class="ln"><em>not guesses</em></span></div>
+          <div class="win" id="s4-win"><div class="screen"><img src="assets/03-ambiguous.jpg" alt="" /></div></div>
+          <div class="chip amber" id="s4-chip" style="left: 80px; top: 1690px">Confidence 0.6 · human review</div>
+        </div>
+      </section>
+
+      <!-- 5 duplicate -->
+      <section id="s5" class="clip scene" data-start="15.8" data-duration="4.2" data-track-index="5">
+        <div class="stage" id="s5-stage">
+          <div class="kicker">Dedupe</div>
+          <div class="headline"><span class="ln">Duplicates never</span><span class="ln"><em>run twice</em></span></div>
+          <div class="win" id="s5-win"><div class="screen"><img src="assets/04-duplicate.jpg" alt="" /></div></div>
+          <div class="chip blue" id="s5-chip" style="left: 80px; top: 1690px">Already received</div>
+        </div>
+      </section>
+
+      <!-- 6 canvas -->
+      <section id="s6" class="clip scene" data-start="19.6" data-duration="5" data-track-index="6">
+        <div class="stage" id="s6-stage">
+          <div class="kicker">Under the hood</div>
+          <div class="headline"><span class="ln">22 nodes,</span><span class="ln"><em>one clear flow</em></span></div>
+          <div class="win wide" id="s6-win"><div class="screen"><img id="s6-img" src="assets/05-canvas.jpg" alt="" /></div></div>
+          <div class="chip blue" id="s6-chip" style="left: 80px; top: 1260px">Prompts live in one Config node</div>
+        </div>
+      </section>
+
+      <!-- 7 safety net -->
+      <section id="s7" class="clip scene" data-start="24.2" data-duration="3.4" data-track-index="7">
+        <div class="stage" id="s7-stage">
+          <div class="kicker">Built to not lose messages</div>
+          <div class="headline"><span class="ln">Saved, tracked,</span><span class="ln"><em>recoverable</em></span></div>
+          <div class="pill-row" id="s7-pills">
+            <div class="pill">Postgres</div>
+            <div class="pill">Status per message</div>
+            <div class="pill">Retries</div>
+            <div class="pill">Error workflow</div>
+            <div class="pill">Duplicate check</div>
+            <div class="pill">Team alerts</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8 end card -->
+      <section id="s8" class="clip scene" data-start="27.2" data-duration="3.8" data-track-index="8">
+        <div class="stage" id="s8-stage">
+          <div id="end-mark">ST</div>
+          <div id="end-name">Support Triage</div>
+          <div id="end-sub">Classify · Draft · Alert</div>
+          <div id="end-note">Built with n8n</div>
+        </div>
+      </section>
+
+      <audio id="bgm" src="assets/bgm.mp3" data-start="0" data-duration="31" data-track-index="20" data-volume="0.85"></audio>
+      <audio id="whoosh1" src="assets/whoosh.mp3" data-start="3.4" data-duration="0.6" data-track-index="21" data-volume="0.35"></audio>
+      <audio id="whoosh2" src="assets/whoosh.mp3" data-start="7.5" data-duration="0.6" data-track-index="22" data-volume="0.35"></audio>
+      <audio id="whoosh3" src="assets/whoosh.mp3" data-start="11.6" data-duration="0.6" data-track-index="23" data-volume="0.35"></audio>
+      <audio id="whoosh4" src="assets/whoosh.mp3" data-start="15.7" data-duration="0.6" data-track-index="24" data-volume="0.35"></audio>
+      <audio id="whoosh5" src="assets/whoosh.mp3" data-start="19.5" data-duration="0.6" data-track-index="25" data-volume="0.35"></audio>
+      <audio id="whoosh6" src="assets/whoosh.mp3" data-start="24.1" data-duration="0.6" data-track-index="26" data-volume="0.35"></audio>
+      <audio id="whoosh7" src="assets/whoosh.mp3" data-start="27.1" data-duration="0.6" data-track-index="27" data-volume="0.35"></audio>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      tl.to("#glow-a", { x: 180, y: 140, duration: 31, ease: "none" }, 0);
+      tl.to("#glow-b", { x: -160, y: -200, duration: 31, ease: "none" }, 0);
+
+      // 1 hook
+            tl.fromTo("#h2", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.85);
+      tl.fromTo("#h3", { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 1.5);
+      tl.fromTo("#h4", { scale: 0.7, opacity: 0, transformOrigin: "0% 50%" }, { scale: 1, opacity: 1, duration: 0.6, ease: "back.out(1.6)" }, 2.3);
+      tl.to("#s1-stage", { opacity: 0, y: -50, duration: 0.4, ease: "power2.in" }, 3.5);
+
+      // feature scene: kicker + headline in, window rises, chip pops, exit
+      function scene(id, t0, dur) {
+        const sel = (s) => `#${id}-${s}`;
+        tl.fromTo(`#${id} .kicker`, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, t0 + 0.1);
+        tl.fromTo(`#${id} .headline .ln`, { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "expo.out", stagger: 0.12 }, t0 + 0.2);
+        tl.fromTo(sel("win"), { y: 420, rotation: 5, scale: 0.92, opacity: 0 }, { y: 0, rotation: 0, scale: 1, opacity: 1, duration: 1.0, ease: "power4.out" }, t0 + 0.25);
+        tl.to(sel("win"), { y: -30, duration: dur - 1.5, ease: "none" }, t0 + 1.25);
+        tl.fromTo(sel("chip"), { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.55, ease: "back.out(2)" }, t0 + 1.1);
+        tl.to(sel("chip"), { y: -22, duration: 1.3, ease: "sine.inOut", yoyo: true, repeat: 1 }, t0 + 1.7);
+        tl.to(sel("stage"), { opacity: 0, y: -60, duration: 0.4, ease: "power2.in" }, t0 + dur - 0.4);
+      }
+      scene("s2", 3.5, 4.5);
+      scene("s3", 7.6, 4.5);
+      scene("s4", 11.7, 4.5);
+      scene("s5", 15.8, 4.2);
+
+      // 6 canvas: same entrance, then pan across the wide workflow image
+      scene("s6", 19.6, 5);
+      tl.fromTo("#s6-img", { x: 0 }, { x: -1800, duration: 3.2, ease: "power1.inOut" }, 20.6);
+
+      // 7 safety net
+      tl.fromTo("#s7 .kicker", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 24.3);
+      tl.fromTo("#s7 .headline .ln", { y: 80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "expo.out", stagger: 0.12 }, 24.4);
+      tl.fromTo("#s7-pills .pill", { y: 60, opacity: 0, scale: 0.85 }, { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: "back.out(1.8)", stagger: 0.1 }, 24.9);
+      tl.to("#s7-stage", { opacity: 0, y: -50, duration: 0.4, ease: "power2.in" }, 27.2);
+
+      // 8 end card
+      tl.fromTo("#end-mark", { scale: 0.5, opacity: 0, rotation: -12 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.8, ease: "back.out(1.7)" }, 27.3);
+      tl.fromTo("#end-name", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 27.6);
+      tl.fromTo("#end-sub", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 27.85);
+      tl.fromTo("#end-note", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 28.1);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

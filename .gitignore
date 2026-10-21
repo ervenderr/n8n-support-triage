@@ -1,0 +1,7 @@
+.env
+.creds.tmp.json
+.DS_Store
+tests/notify.log
+.fake.*
+.workflow.tmp.json
+HANDOVER.md

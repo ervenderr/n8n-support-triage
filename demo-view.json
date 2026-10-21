@@ -1,0 +1,88 @@
+{
+  "id": "triageView01",
+  "name": "Demo only: list recent messages",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "support-messages",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "name": "Webhook: List Messages",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "support-messages-demo"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- DEMO ONLY: read-only list of the latest rows for the demo page\nselect coalesce(json_agg(t), '[]'::json) as rows from (\n  select id, left(customer_message, 60) as message, category, confidence::float as confidence, status, needs_human_review, notified\n  from support_messages order by id desc limit 15) t;",
+        "options": {}
+      },
+      "name": "Read Recent Rows",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        250,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "pgTriage01",
+          "name": "Triage Postgres"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.rows }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "name": "Respond Rows",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        500,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook: List Messages": {
+      "main": [
+        [
+          {
+            "node": "Read Recent Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Recent Rows": {
+      "main": [
+        [
+          {
+            "node": "Respond Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
